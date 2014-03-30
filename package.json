@@ -4,6 +4,7 @@
   "dependencies": {
     "elasticsearch": "^2.1.0",
     "lodash": "^2.4.1",
-    "async": "^0.6.0"
+    "async": "^0.6.0",
+    "json2csv": "^2.2.1"
   }
 }
