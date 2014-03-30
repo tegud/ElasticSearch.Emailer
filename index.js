@@ -28,20 +28,23 @@ client.search({
 	    }
 }
 }).then(function (body) {
-	var hits = body.hits.hits;
-
-	console.log(body.aggregations.HotelID.buckets.length + ' unique hotels with missing rooms found');
-	var totalUniqueProducts = _.reduce(body.aggregations.HotelID.buckets, function(memo, hotelBucket) {
-		return memo + hotelBucket.ProductID.buckets.length;
-	}, 0);
-
-	console.log(totalUniqueProducts + ' unique products with missing rooms found');			
-
-	fs.writeFile(__dirname + '/test.json', JSON.stringify(body, null, 4), function (err) {
-		console.log('Output written to test.json');
-		process.exit(0);
-	});
-
+	async.map(body.aggregations.HotelID.buckets, 
+		function(hotel, callback) {
+			return async.map(hotel.ProductID.buckets, function(product, callback) {
+				callback(null, {
+					hotel: hotel.key,
+					product: product.key,
+					instances: product.doc_count
+				});
+			}, callback);
+		},
+		function(err, data) {
+			console.log(JSON.stringify(data, null, 4));
+			fs.writeFile(__dirname + '/test.json', JSON.stringify(body, null, 4), function (err) {
+				console.log('Output written to test.json');
+				process.exit(0);
+			});
+		});
 }, function (error) {
 	console.trace(error.message);
 });
